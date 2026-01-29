@@ -9,5 +9,9 @@ export function setCspNonce(req, res, next) {
         console.error('Error generating CSP nonce:', e);
     }
     res.locals.cspNonce = nonce;
+    res.locals.middlewareChain?.push({
+        name: 'setCspNonce',
+        data: `Nonce: ${nonce.substring(0, 8)}...`,
+    });
     next();
 }

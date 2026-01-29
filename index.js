@@ -19,37 +19,19 @@ const app = express();
 app.use(cookieParser());
 const PORT = process.env.PORT || 3000;
 
-// Helper to track middleware execution
-function trackMiddleware(name, data) {
-    return (req, res, next) => {
-        if (res.locals.middlewareChain) {
-            res.locals.middlewareChain.push({ name, data: data(req, res) });
-        }
-        next();
-    };
-}
-
 app.use(normalizeUrl);
 app.use(requestLogger);
-app.use(requestId);
-app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
-app.use(responseTime);
-app.use(trackMiddleware('responseTime', () => 'Timing response...'));
 app.use(setDefaults({
     appName: 'Express Middleware Demo',
     version: '1.0.0',
 }));
-app.use(trackMiddleware('setDefaults', (req, res) => `App: ${res.locals.appName} v${res.locals.version}`));
+app.use(requestId);
+app.use(responseTime);
 app.use(setCspNonce);
-app.use(trackMiddleware('setCspNonce', (req, res) => `Nonce: ${res.locals.cspNonce.substring(0, 8)}...`));
 app.use(parseUserAgent);
-app.use(trackMiddleware('parseUserAgent', (req, res) => `${res.locals.userAgent.browser} on ${res.locals.userAgent.os}`));
 app.use(contentEnhancer);
-app.use(trackMiddleware('contentEnhancer', (req, res) => res.locals.enhancedContent.greeting));
 app.use(visitTracker);
-app.use(trackMiddleware('visitTracker', (req, res) => `Visit #${res.locals.visits}`));
 app.use(customHeaders);
-app.use(trackMiddleware('customHeaders', () => 'X-Powered-By, X-Request-Id'));
 
 app.get('/', (req, res) => {
     const middlewareHtml = res.locals.middlewareChain

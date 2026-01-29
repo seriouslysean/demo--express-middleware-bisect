@@ -5,5 +5,9 @@ export function contentEnhancer(req, res, next) {
         // BUG: This should not be here
         debugInfo: '<p>THIS IS A BUG</p>',
     };
+    res.locals.middlewareChain?.push({
+        name: 'contentEnhancer',
+        data: res.locals.enhancedContent.greeting,
+    });
     next();
 }

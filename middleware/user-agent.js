@@ -24,5 +24,9 @@ export function parseUserAgent(req, res, next) {
         browser: extractBrowser(ua),
         os: extractOS(ua),
     };
+    res.locals.middlewareChain?.push({
+        name: 'parseUserAgent',
+        data: `${res.locals.userAgent.browser} on ${res.locals.userAgent.os}`,
+    });
     next();
 }
