@@ -112,6 +112,13 @@ function visitTracker(req, res, next) {
     next();
 }
 
+// Custom Headers Middleware
+function customHeaders(req, res, next) {
+    res.set('X-Powered-By', 'Express Middleware Demo');
+    res.set('X-Request-Id', res.locals.requestId);
+    next();
+}
+
 app.use(requestLogger);
 app.use(requestId);
 app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
@@ -130,6 +137,8 @@ app.use(contentEnhancer);
 app.use(trackMiddleware('contentEnhancer', (req, res) => res.locals.enhancedContent.greeting));
 app.use(visitTracker);
 app.use(trackMiddleware('visitTracker', (req, res) => `Visit #${res.locals.visits}`));
+app.use(customHeaders);
+app.use(trackMiddleware('customHeaders', () => 'X-Powered-By, X-Request-Id'));
 
 app.get('/', (req, res) => {
     const middlewareHtml = res.locals.middlewareChain
