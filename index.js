@@ -63,6 +63,35 @@ function setCspNonce(req, res, next) {
     next();
 }
 
+// User Agent Parser Helpers
+function extractBrowser(ua) {
+    if (ua.includes('Firefox')) return 'Firefox';
+    if (ua.includes('Chrome')) return 'Chrome';
+    if (ua.includes('Safari')) return 'Safari';
+    if (ua.includes('Edge')) return 'Edge';
+    return 'Unknown';
+}
+
+function extractOS(ua) {
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('Mac')) return 'macOS';
+    if (ua.includes('Linux')) return 'Linux';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('iOS')) return 'iOS';
+    return 'Unknown';
+}
+
+// User Agent Parser Middleware
+function parseUserAgent(req, res, next) {
+    const ua = req.get('User-Agent') || 'Unknown';
+    res.locals.userAgent = {
+        raw: ua,
+        browser: extractBrowser(ua),
+        os: extractOS(ua),
+    };
+    next();
+}
+
 app.use(requestLogger);
 app.use(requestId);
 app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
@@ -75,6 +104,8 @@ app.use(setDefaults({
 app.use(trackMiddleware('setDefaults', (req, res) => `App: ${res.locals.appName} v${res.locals.version}`));
 app.use(setCspNonce);
 app.use(trackMiddleware('setCspNonce', (req, res) => `Nonce: ${res.locals.cspNonce.substring(0, 8)}...`));
+app.use(parseUserAgent);
+app.use(trackMiddleware('parseUserAgent', (req, res) => `${res.locals.userAgent.browser} on ${res.locals.userAgent.os}`));
 
 app.get('/', (req, res) => {
     const middlewareHtml = res.locals.middlewareChain
