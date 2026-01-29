@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import express from 'express';
 
 const app = express();
@@ -13,7 +14,15 @@ function requestLogger(req, res, next) {
     next();
 }
 
+// Request ID Middleware
+function requestId(req, res, next) {
+    req.id = crypto.randomUUID();
+    res.locals.requestId = req.id;
+    next();
+}
+
 app.use(requestLogger);
+app.use(requestId);
 
 app.get('/', (req, res) => {
     res.send(`
@@ -28,7 +37,7 @@ app.get('/', (req, res) => {
 </head>
 <body>
     <h1>Express Middleware Chain Demo</h1>
-    <p>Welcome to the Express Middleware Demo!</p>
+    <p>Request ID: ${res.locals.requestId}</p>
 </body>
 </html>
     `);
