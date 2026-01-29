@@ -119,6 +119,16 @@ function customHeaders(req, res, next) {
     next();
 }
 
+// URL Normalizer Middleware
+function normalizeUrl(req, res, next) {
+    if (req.path.includes('//')) {
+        const normalized = req.path.replace(/\/+/g, '/');
+        return res.redirect(301, normalized);
+    }
+    next();
+}
+
+app.use(normalizeUrl);
 app.use(requestLogger);
 app.use(requestId);
 app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
