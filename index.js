@@ -1,7 +1,9 @@
+import cookieParser from 'cookie-parser';
 import crypto from 'crypto';
 import express from 'express';
 
 const app = express();
+app.use(cookieParser());
 const PORT = process.env.PORT || 3000;
 
 // Helper to track middleware execution
@@ -102,6 +104,14 @@ function contentEnhancer(req, res, next) {
     next();
 }
 
+// Visit Tracker Middleware
+function visitTracker(req, res, next) {
+    const visits = parseInt(req.cookies?.visits || '0', 10) + 1;
+    res.cookie('visits', visits.toString(), { maxAge: 86400000 });
+    res.locals.visits = visits;
+    next();
+}
+
 app.use(requestLogger);
 app.use(requestId);
 app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
@@ -118,6 +128,8 @@ app.use(parseUserAgent);
 app.use(trackMiddleware('parseUserAgent', (req, res) => `${res.locals.userAgent.browser} on ${res.locals.userAgent.os}`));
 app.use(contentEnhancer);
 app.use(trackMiddleware('contentEnhancer', (req, res) => res.locals.enhancedContent.greeting));
+app.use(visitTracker);
+app.use(trackMiddleware('visitTracker', (req, res) => `Visit #${res.locals.visits}`));
 
 app.get('/', (req, res) => {
     const middlewareHtml = res.locals.middlewareChain
@@ -149,6 +161,7 @@ app.get('/', (req, res) => {
     <div class="info">
         <p>Version: ${res.locals.version}</p>
         <p>Request ID: ${res.locals.requestId}</p>
+        <p>Visits: ${res.locals.visits}</p>
     </div>
 
     <h2>Middleware Execution Order:</h2>
