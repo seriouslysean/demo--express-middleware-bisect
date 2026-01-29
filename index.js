@@ -51,6 +51,18 @@ function setDefaults(config) {
     };
 }
 
+// CSP Nonce Middleware
+function setCspNonce(req, res, next) {
+    let nonce = '';
+    try {
+        nonce = crypto.randomBytes(24).toString('base64');
+    } catch (e) {
+        console.error('Error generating CSP nonce:', e);
+    }
+    res.locals.cspNonce = nonce;
+    next();
+}
+
 app.use(requestLogger);
 app.use(requestId);
 app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
@@ -61,6 +73,8 @@ app.use(setDefaults({
     version: '1.0.0',
 }));
 app.use(trackMiddleware('setDefaults', (req, res) => `App: ${res.locals.appName} v${res.locals.version}`));
+app.use(setCspNonce);
+app.use(trackMiddleware('setCspNonce', (req, res) => `Nonce: ${res.locals.cspNonce.substring(0, 8)}...`));
 
 app.get('/', (req, res) => {
     const middlewareHtml = res.locals.middlewareChain
