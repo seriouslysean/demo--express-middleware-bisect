@@ -1,0 +1,23 @@
+{
+    "name": "demo--express-middleware-bisect",
+    "version": "1.0.0",
+    "description": "Demo: Express Middleware + Git Bisect",
+    "homepage": "https://github.com/seriouslysean/demo--express-middleware-bisect#readme",
+    "bugs": {
+        "url": "https://github.com/seriouslysean/demo--express-middleware-bisect/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/seriouslysean/demo--express-middleware-bisect.git"
+    },
+    "license": "MIT",
+    "author": "Sean Kennedy <sean@codeserious.com>",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.21.0"
+    }
+}
