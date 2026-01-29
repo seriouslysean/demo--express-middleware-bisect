@@ -21,8 +21,19 @@ function requestId(req, res, next) {
     next();
 }
 
+// Response Time Middleware
+function responseTime(req, res, next) {
+    const start = performance.now();
+    res.on('finish', () => {
+        const duration = (performance.now() - start).toFixed(2);
+        res.setHeader('X-Response-Time', `${duration}ms`);
+    });
+    next();
+}
+
 app.use(requestLogger);
 app.use(requestId);
+app.use(responseTime);
 
 app.get('/', (req, res) => {
     res.send(`
