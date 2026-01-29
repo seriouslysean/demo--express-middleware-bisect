@@ -3,6 +3,18 @@ import express from 'express';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Request Logger Middleware
+function requestLogger(req, res, next) {
+    const start = performance.now();
+    res.on('finish', () => {
+        const duration = Math.round(performance.now() - start);
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
+    });
+    next();
+}
+
+app.use(requestLogger);
+
 app.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
