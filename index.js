@@ -1,6 +1,17 @@
 import cookieParser from 'cookie-parser';
-import crypto from 'crypto';
 import express from 'express';
+
+import { contentEnhancer } from './middleware/content-enhancer.js';
+import { setCspNonce } from './middleware/csp-nonce.js';
+import { customHeaders } from './middleware/custom-headers.js';
+import { errorHandler } from './middleware/error-handler.js';
+import { requestId } from './middleware/request-id.js';
+import { requestLogger } from './middleware/request-logger.js';
+import { responseTime } from './middleware/response-time.js';
+import { setDefaults } from './middleware/set-defaults.js';
+import { normalizeUrl } from './middleware/url-normalizer.js';
+import { parseUserAgent } from './middleware/user-agent.js';
+import { visitTracker } from './middleware/visit-tracker.js';
 
 const app = express();
 app.use(cookieParser());
@@ -14,143 +25,6 @@ function trackMiddleware(name, data) {
         }
         next();
     };
-}
-
-// Request Logger Middleware
-function requestLogger(req, res, next) {
-    const start = performance.now();
-    res.on('finish', () => {
-        const duration = Math.round(performance.now() - start);
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url} - ${res.statusCode} (${duration}ms)`);
-    });
-    next();
-}
-
-// Request ID Middleware
-function requestId(req, res, next) {
-    req.id = crypto.randomUUID();
-    res.locals.requestId = req.id;
-    next();
-}
-
-// Response Time Middleware
-function responseTime(req, res, next) {
-    const start = performance.now();
-    res.on('finish', () => {
-        const duration = (performance.now() - start).toFixed(2);
-        res.setHeader('X-Response-Time', `${duration}ms`);
-    });
-    next();
-}
-
-// Set Defaults Middleware
-function setDefaults(config) {
-    return (req, res, next) => {
-        res.locals.appName = config.appName;
-        res.locals.version = config.version;
-        res.locals.middlewareChain = [];
-        next();
-    };
-}
-
-// CSP Nonce Middleware
-function setCspNonce(req, res, next) {
-    let nonce = '';
-    try {
-        nonce = crypto.randomBytes(24).toString('base64');
-    } catch (e) {
-        console.error('Error generating CSP nonce:', e);
-    }
-    res.locals.cspNonce = nonce;
-    next();
-}
-
-// User Agent Parser Helpers
-function extractBrowser(ua) {
-    if (ua.includes('Firefox')) return 'Firefox';
-    if (ua.includes('Chrome')) return 'Chrome';
-    if (ua.includes('Safari')) return 'Safari';
-    if (ua.includes('Edge')) return 'Edge';
-    return 'Unknown';
-}
-
-function extractOS(ua) {
-    if (ua.includes('Windows')) return 'Windows';
-    if (ua.includes('Mac')) return 'macOS';
-    if (ua.includes('Linux')) return 'Linux';
-    if (ua.includes('Android')) return 'Android';
-    if (ua.includes('iOS')) return 'iOS';
-    return 'Unknown';
-}
-
-// User Agent Parser Middleware
-function parseUserAgent(req, res, next) {
-    const ua = req.get('User-Agent') || 'Unknown';
-    res.locals.userAgent = {
-        raw: ua,
-        browser: extractBrowser(ua),
-        os: extractOS(ua),
-    };
-    next();
-}
-
-// Content Enhancer Middleware
-function contentEnhancer(req, res, next) {
-    res.locals.enhancedContent = {
-        greeting: 'Welcome to the demo!',
-        // BUG: This should not be here
-        debugInfo: '<p>THIS IS A BUG</p>',
-    };
-    next();
-}
-
-// Visit Tracker Middleware
-function visitTracker(req, res, next) {
-    const visits = parseInt(req.cookies?.visits || '0', 10) + 1;
-    res.cookie('visits', visits.toString(), { maxAge: 86400000 });
-    res.locals.visits = visits;
-    next();
-}
-
-// Custom Headers Middleware
-function customHeaders(req, res, next) {
-    res.set('X-Powered-By', 'Express Middleware Demo');
-    res.set('X-Request-Id', res.locals.requestId);
-    next();
-}
-
-// URL Normalizer Middleware
-function normalizeUrl(req, res, next) {
-    if (req.path.includes('//')) {
-        const normalized = req.path.replace(/\/+/g, '/');
-        return res.redirect(301, normalized);
-    }
-    next();
-}
-
-// Error Handler Middleware
-function errorHandler(err, req, res, next) {
-    console.error('Error:', { error: err.message, requestId: req.id });
-    res.status(500).send(`
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Error</title>
-    <style>
-        body { font-family: monospace; padding: 2rem; background: #1a1a2e; color: #eee; }
-        h1 { color: #ff6b6b; }
-        .error-box { background: #16213e; padding: 1rem; border-radius: 4px; border-left: 3px solid #ff6b6b; }
-    </style>
-</head>
-<body>
-    <h1>Error</h1>
-    <div class="error-box">
-        <p>${err.message}</p>
-        <p>Request ID: ${req.id}</p>
-    </div>
-</body>
-</html>
-    `);
 }
 
 app.use(normalizeUrl);
