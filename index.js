@@ -1,17 +1,19 @@
 import cookieParser from 'cookie-parser';
 import express from 'express';
 
-import { contentEnhancer } from './middleware/content-enhancer.js';
-import { setCspNonce } from './middleware/csp-nonce.js';
-import { customHeaders } from './middleware/custom-headers.js';
-import { errorHandler } from './middleware/error-handler.js';
-import { requestId } from './middleware/request-id.js';
-import { requestLogger } from './middleware/request-logger.js';
-import { responseTime } from './middleware/response-time.js';
-import { setDefaults } from './middleware/set-defaults.js';
-import { normalizeUrl } from './middleware/url-normalizer.js';
-import { parseUserAgent } from './middleware/user-agent.js';
-import { visitTracker } from './middleware/visit-tracker.js';
+import {
+    contentEnhancer,
+    customHeaders,
+    errorHandler,
+    normalizeUrl,
+    parseUserAgent,
+    requestId,
+    requestLogger,
+    responseTime,
+    setCspNonce,
+    setDefaults,
+    visitTracker,
+} from './middleware/index.js';
 
 const app = express();
 app.use(cookieParser());
