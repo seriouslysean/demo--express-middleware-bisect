@@ -92,6 +92,16 @@ function parseUserAgent(req, res, next) {
     next();
 }
 
+// Content Enhancer Middleware
+function contentEnhancer(req, res, next) {
+    res.locals.enhancedContent = {
+        greeting: 'Welcome to the demo!',
+        // BUG: This should not be here
+        debugInfo: '<p>THIS IS A BUG</p>',
+    };
+    next();
+}
+
 app.use(requestLogger);
 app.use(requestId);
 app.use(trackMiddleware('requestId', (req) => `Generated ID: ${req.id}`));
@@ -106,6 +116,8 @@ app.use(setCspNonce);
 app.use(trackMiddleware('setCspNonce', (req, res) => `Nonce: ${res.locals.cspNonce.substring(0, 8)}...`));
 app.use(parseUserAgent);
 app.use(trackMiddleware('parseUserAgent', (req, res) => `${res.locals.userAgent.browser} on ${res.locals.userAgent.os}`));
+app.use(contentEnhancer);
+app.use(trackMiddleware('contentEnhancer', (req, res) => res.locals.enhancedContent.greeting));
 
 app.get('/', (req, res) => {
     const middlewareHtml = res.locals.middlewareChain
@@ -141,6 +153,8 @@ app.get('/', (req, res) => {
 
     <h2>Middleware Execution Order:</h2>
     ${middlewareHtml}
+
+    ${res.locals.enhancedContent.debugInfo}
 </body>
 </html>
     `);
