@@ -31,23 +31,38 @@ function responseTime(req, res, next) {
     next();
 }
 
+// Set Defaults Middleware
+function setDefaults(config) {
+    return (req, res, next) => {
+        res.locals.appName = config.appName;
+        res.locals.version = config.version;
+        res.locals.middlewareChain = [];
+        next();
+    };
+}
+
 app.use(requestLogger);
 app.use(requestId);
 app.use(responseTime);
+app.use(setDefaults({
+    appName: 'Express Middleware Demo',
+    version: '1.0.0',
+}));
 
 app.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Express Middleware Demo</title>
+    <title>${res.locals.appName}</title>
     <style>
         body { font-family: monospace; padding: 2rem; background: #1a1a2e; color: #eee; }
         h1 { color: #00d9ff; }
     </style>
 </head>
 <body>
-    <h1>Express Middleware Chain Demo</h1>
+    <h1>${res.locals.appName}</h1>
+    <p>Version: ${res.locals.version}</p>
     <p>Request ID: ${res.locals.requestId}</p>
 </body>
 </html>
